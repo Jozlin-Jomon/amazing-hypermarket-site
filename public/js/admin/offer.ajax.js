@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const formData = new FormData(form);
 
-        fetch(`/offers/${offerId}`, {
+        fetch(`/admin/offers/${offerId}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return response.json();
         })
         .then(data => {
-            // ✅ Success - update the UI or notify user
+            // Success - update the UI or notify user
             console.log('Offer updated:', data);
             alert('Offer updated successfully!');
             // Optional: close modal and refresh list
