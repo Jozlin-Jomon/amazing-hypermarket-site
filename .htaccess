@@ -1,0 +1,110 @@
+RewriteCond %{REQUEST_URI} !^public
+
+RewriteRule ^(.*)$ public/$1 [L]
+# Add www to any URLs that do not have them:
+RewriteEngine On
+RewriteCond %{HTTP_HOST}  !^www.amazinghypermarket.nubicus.com/$ [NC]
+RewriteRule ^(.*) https://amazinghypermarket.nubicus.com/$1 [L,R]
+
+# Ensure the site runs on PHP
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag display_startup_errors Off
+    php_value max_execution_time 300
+    php_value memory_limit 256M
+</IfModule>
+
+# Handle the 'public' directory redirection
+<IfModule mod_rewrite.c>
+    Options -Indexes
+    RewriteEngine On
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    # Handle Laravel's routing
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+
+    # Prevent access to certain file types
+    <FilesMatch "\.(env|log|json|lock|config\.php|sql|sqlite)$">
+        Order Allow,Deny
+        Deny from all
+    </FilesMatch>
+
+    # Prevent directory listing
+    Options -Indexes
+</IfModule>
+
+# Restrict access to the public folder
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)/public/(.*)$ - [F,L]
+</IfModule>
+
+# Disable access to sensitive directories
+<IfModule mod_rewrite.c>
+    RewriteRule ^(.*)/(storage|vendor|resources|node_modules)/(.*)$ - [F,L]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    # Prevent Clickjacking
+    Header always append X-Frame-Options SAMEORIGIN
+
+    # Protect against XSS attacks
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Force HTTPS (if SSL is enabled)
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+    # Prevent content sniffing
+    Header set X-Content-Type-Options nosniff
+
+    # Disable caching of sensitive information
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+
+    # CORS Policy (optional)
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Authorization, Content-Type"
+</IfModule>
+
+# Block access to .env and other critical files
+<FilesMatch "^\.">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Disable ETag to improve privacy
+FileETag None
+
+# Enable GZIP Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/x-javascript
+</IfModule>
+<IfModule mod_expires.c>
+    ExpiresActive On
+    # Clear specific file types
+    ExpiresByType text/html "access plus 0 seconds"
+    ExpiresByType text/css "access plus 0 seconds"
+    ExpiresByType text/javascript "access plus 0 seconds"
+    ExpiresByType application/javascript "access plus 0 seconds"
+    ExpiresByType image/jpeg "access plus 0 seconds"
+    ExpiresByType image/png "access plus 0 seconds"
+    ExpiresByType image/gif "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Force no caching for dynamic files
+    <FilesMatch "\.(html|htm|php|cgi|pl|js|css)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+    </FilesMatch>
+</IfModule>
+
